@@ -1,5 +1,5 @@
 const std = @import("std");
-const microzig = @import("microzig");
+pub const microzig = @import("microzig");
 
 pub const boards = @import("src/boards.zig");
 pub const chips = @import("src/chips.zig");
