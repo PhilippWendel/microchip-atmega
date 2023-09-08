@@ -53,14 +53,14 @@ pub const gpio = struct {
         cpu.cbi(regs(pin).dir_addr, pin.pin);
     }
 
-    pub fn read(comptime pin: type) micro.gpio.State {
+    pub fn read(comptime pin: type) micro.core.experimental.gpio.State {
         return if ((regs(pin).pin.* & (1 << pin.pin)) != 0)
             .high
         else
             .low;
     }
 
-    pub fn write(comptime pin: type, state: micro.gpio.State) void {
+    pub fn write(comptime pin: type, state: micro.core.experimental.gpio.State) void {
         if (state == .high) {
             cpu.sbi(regs(pin).port_addr, pin.pin);
         } else {
