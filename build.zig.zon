@@ -4,7 +4,7 @@
     .dependencies = .{
         .microzig = .{
             .url = "https://github.com/PhilippWendel/microzig/archive/master.tar.gz",
-            .hash = "1220ada6d01db7b3d0aa8642df89b1af9ee71b681438249e9a7efb2275fc4cf32152",
+            .hash = "1220e57726083fb6d1faf6c92e88d746aa926d264fe85dad4f52e2b745eb5c45bac2",
         },
     },
 }
