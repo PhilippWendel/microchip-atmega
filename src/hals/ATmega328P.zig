@@ -213,7 +213,7 @@ pub fn I2CController(comptime index: usize, comptime pins: hw.i2c.Pins) type {
     //     - stop
     //     - restart_read
     //     - restart_write
-    if (index != null) @compileError("Index is not supported");
+    if (index != 0) @compileError("Index is not supported");
     if (pins.scl != null or pins.sda != null) @compileError("Custom pins are not supported");
 
     const bitrate_register = I2C.TWBR;
