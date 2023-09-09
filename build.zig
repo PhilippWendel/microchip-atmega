@@ -1,11 +1,12 @@
 const std = @import("std");
-pub const microzig = @import("microzig");
+const microzig = @import("microzig");
 
 pub const boards = @import("src/boards.zig");
 pub const chips = @import("src/chips.zig");
 
 pub fn build(b: *std.build.Builder) void {
     const optimize = b.standardOptimizeOption(.{});
+    std.debug.print("{any}", .{@typeInfo(boards).Struct.decls});
     inline for (@typeInfo(boards).Struct.decls) |decl| {
         const exe = microzig.addEmbeddedExecutable(b, .{
             .name = @field(boards, decl.name).name ++ ".minimal",
