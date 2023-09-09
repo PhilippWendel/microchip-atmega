@@ -107,14 +107,14 @@ pub fn Uart(comptime index: usize, comptime pins: hw.uart.Pins) type {
         const Self = @This();
 
         fn computeDivider(baud_rate: u32) !u12 {
-            const pclk = micro.clock.get().cpu;
+            const pclk = hw.clock.get().cpu;
             const divider = ((pclk + (8 * baud_rate)) / (16 * baud_rate)) - 1;
 
             return std.math.cast(u12, divider) orelse return error.UnsupportedBaudRate;
         }
 
         fn computeBaudRate(divider: u12) u32 {
-            return micro.clock.get().cpu / (16 * @as(u32, divider) + 1);
+            return hw.clock.get().cpu / (16 * @as(u32, divider) + 1);
         }
 
         pub fn init(config: hw.uart.Config) !Self {
@@ -162,12 +162,12 @@ pub fn Uart(comptime index: usize, comptime pins: hw.uart.Pins) type {
             USART0.UCSR0C.write(.{
                 .UCPOL0 = 0, // async mode
                 .UCSZ0 = @as(u2, @truncate((ucsz & 0x03) >> 0)),
-                .USBS0 = usbs,
-                .UPM0 = upm,
-                .UMSEL0 = umsel,
+                .USBS0 = .{ .raw = usbs },
+                .UPM0 = .{ .raw = upm },
+                .UMSEL0 = .{ .raw = umsel },
             });
 
-            USART0.UBRR0.modify(ubrr_val);
+            USART0.UBRR0 = ubrr_val;
 
             return Self{};
         }
@@ -179,7 +179,7 @@ pub fn Uart(comptime index: usize, comptime pins: hw.uart.Pins) type {
 
         pub fn tx(self: Self, ch: u8) void {
             while (!self.canWrite()) {} // Wait for Previous transmission
-            USART0.UDR0.* = ch; // Load the data to be transmitted
+            USART0.UDR0 = ch; // Load the data to be transmitted
         }
 
         pub fn canRead(self: Self) bool {
@@ -189,7 +189,7 @@ pub fn Uart(comptime index: usize, comptime pins: hw.uart.Pins) type {
 
         pub fn rx(self: Self) u8 {
             while (!self.canRead()) {} // Wait till the data is received
-            return USART0.UDR0.*; // Read received data
+            return USART0.UDR0; // Read received data
         }
     };
 }
@@ -234,7 +234,7 @@ pub fn I2CController(comptime index: usize, comptime pins: hw.i2c.Pins) type {
                 @compileError("config.target_speed can't be greater than 400kHz");
             // "[Device] operation does not depend on bit rate or prescaler settings,
             // but the CPU clock frequency in the [device] must be at least 16 times higher than the SCL frequency." [1, p. 180]
-            if (!(micro.clock.get().cpu > config.target_speed * 16))
+            if (!(hw.clock.get().cpu > config.target_speed * 16))
                 @compileError("CPU clock frequency must be at least 16 times higher than config.target_speed");
 
             // "[I]nternal pull-ups in the AVR pads can be enabled by setting the PORT bits corresponding to the SCL and SDA pins" [1, p. 179]
@@ -246,7 +246,7 @@ pub fn I2CController(comptime index: usize, comptime pins: hw.i2c.Pins) type {
             PRR.modify(.{ .PRTWI = 0 }); // "The PRTWI bit ... must be written to zero to enable the 2-wire serial interface." [1, p. 174]
 
             // SCL_frequency = CPU_Clock_frequency/(16+2(TWBR)*(PrescalerValue)) [1, p. 180]
-            const @"bitrate*prescaler" = ((micro.clock.get().cpu / config.target_speed) - 16) / 2;
+            const @"bitrate*prescaler" = ((hw.clock.get().cpu / config.target_speed) - 16) / 2;
             const bitrate_and_prescaler = inline for (Prescalers) |prescaler| {
                 const bitrate = @"bitrate*prescaler" / std.parseUnsigned(u8, @typeName(prescaler), 0);
                 // Bitrate should be at least 10 [2, Sec. Note 5]
