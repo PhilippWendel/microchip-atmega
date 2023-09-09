@@ -223,7 +223,7 @@ pub fn I2CController(comptime index: usize, comptime pins: hw.i2c.Pins) type {
     // Currently unused
     // const address_register = I2C.TWAR;
 
-    const Prescalers = I2C.COMM_TWI_PRESACLE;
+    const Prescalers = I2C.TWI.COMM_TWI_PRESACLE;
 
     return struct {
         const Self = @This();
