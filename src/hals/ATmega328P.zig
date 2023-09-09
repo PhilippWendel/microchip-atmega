@@ -1,5 +1,7 @@
 const std = @import("std");
 const micro = @import("microzig");
+
+const hw = micro.core.experimental;
 const peripherals = micro.chip.peripherals;
 const USART0 = peripherals.USART0;
 const I2C = peripherals.TWI;
@@ -56,14 +58,14 @@ pub const gpio = struct {
         cpu.cbi(regs(pin).dir_addr, pin.pin);
     }
 
-    pub fn read(comptime pin: type) micro.core.experimental.gpio.State {
+    pub fn read(comptime pin: type) hw.gpio.State {
         return if ((regs(pin).pin.* & (1 << pin.pin)) != 0)
             .high
         else
             .low;
     }
 
-    pub fn write(comptime pin: type, state: micro.core.experimental.gpio.State) void {
+    pub fn write(comptime pin: type, state: hw.gpio.State) void {
         if (state == .high) {
             cpu.sbi(regs(pin).port_addr, pin.pin);
         } else {
@@ -96,7 +98,7 @@ pub const uart = struct {
     };
 };
 
-pub fn Uart(comptime index: usize, comptime pins: micro.uart.Pins) type {
+pub fn Uart(comptime index: usize, comptime pins: hw.uart.Pins) type {
     if (index != 0) @compileError("Atmega328p only has a single uart!");
     if (pins.tx != null or pins.rx != null)
         @compileError("Atmega328p has fixed pins for uart!");
@@ -115,7 +117,7 @@ pub fn Uart(comptime index: usize, comptime pins: micro.uart.Pins) type {
             return micro.clock.get().cpu / (16 * @as(u32, divider) + 1);
         }
 
-        pub fn init(config: micro.uart.Config) !Self {
+        pub fn init(config: hw.uart.Config) !Self {
             const ucsz: u3 = switch (config.data_bits) {
                 .five => 0b000,
                 .six => 0b001,
@@ -192,7 +194,7 @@ pub fn Uart(comptime index: usize, comptime pins: micro.uart.Pins) type {
     };
 }
 
-pub fn I2CController(comptime index: usize, comptime pins: micro.i2c.Pins) type {
+pub fn I2CController(comptime index: usize, comptime pins: hw.i2c.Pins) type {
     // - Terminology: I2C instead of TWI (TwoWireInterface) and controller/device, instead of master/slave
     // - TODO
     //   - Rename variables and functions to match zig naming conventions
@@ -226,7 +228,7 @@ pub fn I2CController(comptime index: usize, comptime pins: micro.i2c.Pins) type 
     return struct {
         const Self = @This();
 
-        pub fn init(config: micro.i2c.Config) !Self {
+        pub fn init(config: hw.i2c.Config) !Self {
             // "Up to 400kHz data transfer speed" [1, p. 173]
             if (config.target_speed > 400_000)
                 @compileError("config.target_speed can't be greater than 400kHz");
